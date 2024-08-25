@@ -1,12 +1,13 @@
 package com.pbl.starauthserver.configurations;
 
+import com.pbl.starauthserver.security.CustomOAuth2User;
+import com.pbl.starauthserver.security.CustomUserDetails;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
-
-import java.util.stream.Collectors;
 
 @Configuration
 public class JwtConfig {
@@ -14,14 +15,20 @@ public class JwtConfig {
     @Bean
     public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
         return (context) -> {
-            if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-                context.getClaims().claims((claims) -> {
-                    String roles = context.getPrincipal().getAuthorities().stream()
-                            .map(Object::toString)
-                            .collect(Collectors.joining(" "));
 
-                    claims.put("role", roles);
-                });
+            if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
+
+                Authentication principal = context.getPrincipal();
+
+                if (principal != null && principal.getPrincipal() instanceof CustomOAuth2User oAuth2User) {
+                    context.getClaims().subject(oAuth2User.getUsername());
+                    context.getClaims().claim("role", "ROLE_" + oAuth2User.getRole().name());
+                }
+
+                else if (principal != null && principal.getPrincipal() instanceof CustomUserDetails customUserDetails) {
+                    context.getClaims().claim("role", "ROLE_" + customUserDetails.getRole().name());
+                }
+
             }
         };
     }

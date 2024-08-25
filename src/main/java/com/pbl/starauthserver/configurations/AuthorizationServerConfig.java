@@ -6,7 +6,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.pbl.starauthserver.services.CustomOauth2UserService;
 import com.pbl.starauthserver.services.CustomUserDetailsService;
-import com.pbl.starauthserver.utils.JwtUtil;
+import com.pbl.starauthserver.utils.KeyUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -135,7 +135,7 @@ public class AuthorizationServerConfig {
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
         // Tạo một RSA key pair và cấu hình vào JWKSet
-        KeyPair keyPair = JwtUtil.generateRsaKey(); // Tạo RSA Key pair
+        KeyPair keyPair = KeyUtil.generateRsaKey(); // Tạo RSA Key pair
         RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
                 .privateKey(keyPair.getPrivate())
                 .keyID(UUID.randomUUID().toString())

@@ -4,9 +4,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 
-public class JwtUtil {
-    public static long ACCESS_TOKEN_EXPIRY = 15 * 60L;          // 15 minutes
-    public static long REFRESH_TOKEN_EXPIRY = 24 * 60 * 60L;    // 1 day
+public class KeyUtil {
     public static KeyPair generateRsaKey() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
