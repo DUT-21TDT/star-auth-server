@@ -9,6 +9,8 @@ import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 
+import java.util.List;
+
 @Configuration
 public class JwtConfig {
 
@@ -22,11 +24,11 @@ public class JwtConfig {
 
                 if (principal != null && principal.getPrincipal() instanceof CustomOAuth2User oAuth2User) {
                     context.getClaims().subject(oAuth2User.getUsername());
-                    context.getClaims().claim("role", "ROLE_" + oAuth2User.getRole().name());
+                    context.getClaims().claim("roles", List.of(oAuth2User.getRole().name()));
                 }
 
                 else if (principal != null && principal.getPrincipal() instanceof CustomUserDetails customUserDetails) {
-                    context.getClaims().claim("role", "ROLE_" + customUserDetails.getRole().name());
+                    context.getClaims().claim("roles", List.of(customUserDetails.getRole().name()));
                 }
 
             }
