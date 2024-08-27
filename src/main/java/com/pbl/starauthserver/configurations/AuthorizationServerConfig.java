@@ -4,6 +4,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.pbl.starauthserver.security.BrandedAuthenticationEntryPoint;
 import com.pbl.starauthserver.services.CustomOauth2UserService;
 import com.pbl.starauthserver.services.CustomUserDetailsService;
 import com.pbl.starauthserver.utils.KeyUtil;
@@ -42,6 +43,8 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import java.security.KeyPair;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Configuration
@@ -57,8 +60,10 @@ public class AuthorizationServerConfig {
                 // Redirect to the login page when not authenticated from the
                 // authorization endpoint
                 .exceptionHandling((exceptions) -> exceptions
+                        .authenticationEntryPoint(new BrandedAuthenticationEntryPoint(loginUrls()))
                         .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("/login"),
+                                new BrandedAuthenticationEntryPoint(loginUrls()),
+//                                new LoginUrlAuthenticationEntryPoint("http://localhost:5500/login.html"),
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                         )
                 )
@@ -77,10 +82,9 @@ public class AuthorizationServerConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
             throws Exception {
         http
-//                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/oauth2/jwks").permitAll()
-                        .requestMatchers("/login").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(
@@ -92,13 +96,12 @@ public class AuthorizationServerConfig {
                 )
                 // Form login handles the redirect to the login page from the
                 // authorization server filter chain
-//                .formLogin(Customizer.withDefaults())
                 .formLogin(
                         form -> form.loginPage("/login")
+                                .loginProcessingUrl("/login")
                                 .permitAll()
                 )
                 .logout(Customizer.withDefaults());
-
         return http.build();
     }
 
@@ -124,6 +127,13 @@ public class AuthorizationServerConfig {
                 .build();
 
         return new InMemoryRegisteredClientRepository(starClient);
+    }
+
+    @Bean
+    public Map<String, String> loginUrls() {
+        Map<String, String> loginUrls = new HashMap<>();
+        loginUrls.put("star-client", "http://localhost:5500/login.html");
+        return loginUrls;
     }
 
     private final CustomUserDetailsService userDetailsService;
