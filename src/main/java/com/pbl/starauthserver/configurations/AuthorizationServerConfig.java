@@ -5,7 +5,6 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.pbl.starauthserver.security.BrandedAuthenticationEntryPoint;
-import com.pbl.starauthserver.services.CustomOauth2UserService;
 import com.pbl.starauthserver.services.CustomUserDetailsService;
 import com.pbl.starauthserver.utils.KeyUtil;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +22,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
@@ -37,7 +39,6 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import java.security.KeyPair;
@@ -63,7 +64,6 @@ public class AuthorizationServerConfig {
                         .authenticationEntryPoint(new BrandedAuthenticationEntryPoint(loginUrls()))
                         .defaultAuthenticationEntryPointFor(
                                 new BrandedAuthenticationEntryPoint(loginUrls()),
-//                                new LoginUrlAuthenticationEntryPoint("http://localhost:5500/login.html"),
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                         )
                 )
@@ -75,14 +75,14 @@ public class AuthorizationServerConfig {
     }
 
     @Autowired
-    private CustomOauth2UserService customOauth2UserService;
+    private OAuth2UserService<OAuth2UserRequest, OAuth2User> customOauth2UserService;
 
     @Bean
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
             throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/oauth2/jwks").permitAll()
                         .anyRequest().authenticated()
@@ -185,6 +185,7 @@ public class AuthorizationServerConfig {
         return TokenSettings.builder()
                 .accessTokenTimeToLive(Duration.ofMinutes(15))
                 .refreshTokenTimeToLive(Duration.ofDays(1))
+                .reuseRefreshTokens(false)
                 .build();
     }
 }
