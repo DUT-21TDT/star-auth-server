@@ -9,10 +9,12 @@ import com.pbl.starauthserver.services.CustomUserDetailsService;
 import com.pbl.starauthserver.utils.KeyUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -31,7 +33,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -84,6 +86,7 @@ public class AuthorizationServerConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers("/h2-console", "/h2-console/**").permitAll()
                         .requestMatchers("/oauth2/jwks").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -112,7 +115,9 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    public RegisteredClientRepository registeredClientRepository() {
+    public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
+        RegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcTemplate);
+
         RegisteredClient starClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("star-client")
                 .clientSecret("{noop}star-client-secret")
@@ -126,13 +131,20 @@ public class AuthorizationServerConfig {
                 .tokenSettings(tokenSettings())
                 .build();
 
-        return new InMemoryRegisteredClientRepository(starClient);
+        if (repository.findByClientId(starClient.getClientId()) == null) {
+            repository.save(starClient);
+        }
+
+        return repository;
     }
+
+    @Value("${star.web-client.url.login}")
+    private String webClientUrl;
 
     @Bean
     public Map<String, String> loginUrls() {
         Map<String, String> loginUrls = new HashMap<>();
-        loginUrls.put("star-client", "http://localhost:5500/login.html");
+        loginUrls.put("star-client", webClientUrl);
         return loginUrls;
     }
 

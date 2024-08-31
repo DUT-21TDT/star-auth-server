@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 import static com.pbl.starauthserver.utils.UsernameGenerator.generateUniqueName;
 
@@ -30,9 +31,10 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
         String name = oAuth2User.getAttribute("name");
 
         // Check if user exists in the database
-        AuthUser user = userRepository.findByEmail(email).orElse(null);
+        List<AuthUser> users = userRepository.findByEmailAndStatus(email, AccountStatus.ACTIVE);
 
-        if (user == null) {
+        AuthUser user;
+        if (users.isEmpty()) {
             // Create a new user record if this is the first login
 
             String username = generateUniqueName(name);
@@ -48,7 +50,11 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
                     .status(AccountStatus.ACTIVE)
                     .build();
 
+            userRepository.deleteAll(userRepository.findByEmailAndStatus(email, AccountStatus.INACTIVE));
+
             userRepository.save(user);
+        } else {
+            user = users.getFirst();
         }
 
         return new CustomOAuth2User(oAuth2User, user.getUsername(), user.getRole());
