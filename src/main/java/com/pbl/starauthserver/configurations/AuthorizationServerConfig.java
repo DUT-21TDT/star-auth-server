@@ -4,12 +4,13 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.pbl.starauthserver.properties.PublicClientProperties;
+import com.pbl.starauthserver.properties.StarClientProperties;
 import com.pbl.starauthserver.security.BrandedAuthenticationEntryPoint;
 import com.pbl.starauthserver.services.CustomUserDetailsService;
 import com.pbl.starauthserver.utils.KeyUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -33,6 +34,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -68,10 +70,8 @@ public class AuthorizationServerConfig {
                                 new BrandedAuthenticationEntryPoint(loginUrls()),
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                         )
-                )
+                );
                 // Accept access tokens for User Info and/or Client Registration
-                .oauth2ResourceServer((resourceServer) -> resourceServer
-                        .jwt(Customizer.withDefaults()));
 
         return http.build();
     }
@@ -104,7 +104,12 @@ public class AuthorizationServerConfig {
                                 .loginProcessingUrl("/login")
                                 .permitAll()
                 )
-                .logout(Customizer.withDefaults());
+//                .oidcLogout(Customizer.withDefaults())
+                .logout(logout -> logout
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .permitAll()
+                );
         return http.build();
     }
 
@@ -114,37 +119,56 @@ public class AuthorizationServerConfig {
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "assets/**", "favicon.ico");
     }
 
+    @Autowired
+    private StarClientProperties starClientProperties;
+
+    @Autowired
+    private PublicClientProperties publicClientProperties;
+
     @Bean
     public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
-        RegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcTemplate);
 
-        RegisteredClient starClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("star-client")
-                .clientSecret("{noop}star-client-secret")
+        RegisteredClient publicClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId(publicClientProperties.getClientId())
+                .clientSecret("{noop}" + publicClientProperties.getClientSecret())
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://localhost:5500/callback.html")
-//                .postLogoutRedirectUri("http://localhost:8081/")
+                .redirectUri(publicClientProperties.getRedirectUri())
+                .scope(OidcScopes.OPENID)
+                .build();
+
+        RegisteredClient starClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId(starClientProperties.getClientId())
+                .clientSecret("{noop}" + starClientProperties.getClientSecret())
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .redirectUri(starClientProperties.getRedirectUri())
+                .postLogoutRedirectUri(starClientProperties.getLogoutUri())
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
                 .tokenSettings(tokenSettings())
                 .build();
+
+        RegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcTemplate);
+
+        if (repository.findByClientId(publicClient.getClientId()) == null) {
+            repository.save(publicClient);
+        }
 
         if (repository.findByClientId(starClient.getClientId()) == null) {
             repository.save(starClient);
         }
 
         return repository;
+//        return new InMemoryRegisteredClientRepository(publicClient, starClient);
     }
-
-    @Value("${star.web-client.url.login}")
-    private String webClientUrl;
 
     @Bean
     public Map<String, String> loginUrls() {
         Map<String, String> loginUrls = new HashMap<>();
-        loginUrls.put("star-client", webClientUrl);
+        loginUrls.put(starClientProperties.getClientId(), starClientProperties.getAuthorizationUri());
         return loginUrls;
     }
 
