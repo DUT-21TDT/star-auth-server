@@ -1,4 +1,4 @@
-package com.pbl.starauthserver.security;
+package com.pbl.starauthserver.security.Authentication;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

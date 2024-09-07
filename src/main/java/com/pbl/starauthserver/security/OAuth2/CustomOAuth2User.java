@@ -1,4 +1,4 @@
-package com.pbl.starauthserver.security;
+package com.pbl.starauthserver.security.OAuth2;
 
 import com.pbl.starauthserver.enums.UserRole;
 import lombok.Getter;

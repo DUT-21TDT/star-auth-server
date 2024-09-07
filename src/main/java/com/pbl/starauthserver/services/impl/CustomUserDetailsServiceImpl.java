@@ -2,7 +2,7 @@ package com.pbl.starauthserver.services.impl;
 
 import com.pbl.starauthserver.entities.AuthUser;
 import com.pbl.starauthserver.repositories.UserRepository;
-import com.pbl.starauthserver.security.CustomUserDetails;
+import com.pbl.starauthserver.security.Authentication.CustomUserDetails;
 import com.pbl.starauthserver.services.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

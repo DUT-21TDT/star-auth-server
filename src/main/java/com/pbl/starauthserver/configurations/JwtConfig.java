@@ -1,7 +1,7 @@
 package com.pbl.starauthserver.configurations;
 
-import com.pbl.starauthserver.security.CustomOAuth2User;
-import com.pbl.starauthserver.security.CustomUserDetails;
+import com.pbl.starauthserver.security.OAuth2.CustomOAuth2User;
+import com.pbl.starauthserver.security.Authentication.CustomUserDetails;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;

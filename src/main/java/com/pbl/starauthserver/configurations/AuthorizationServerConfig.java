@@ -7,6 +7,9 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.pbl.starauthserver.properties.PublicClientProperties;
 import com.pbl.starauthserver.properties.StarClientProperties;
 import com.pbl.starauthserver.security.*;
+import com.pbl.starauthserver.security.Authentication.CustomAuthenticationFailureHandler;
+import com.pbl.starauthserver.security.Authentication.CustomAuthenticationSuccessHandler;
+import com.pbl.starauthserver.security.OAuth2.CustomOAuth2AuthenticationFailureHandler;
 import com.pbl.starauthserver.services.CustomUserDetailsService;
 import com.pbl.starauthserver.utils.KeyUtil;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +28,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -36,7 +37,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -133,7 +133,8 @@ public class AuthorizationServerConfig {
         return new CustomAuthenticationSuccessHandler();
     }
 
-    @Bean CustomOAuth2AuthenticationFailureHandler customOAuth2AuthenticationFailureHandler() {
+    @Bean
+    CustomOAuth2AuthenticationFailureHandler customOAuth2AuthenticationFailureHandler() {
         return new CustomOAuth2AuthenticationFailureHandler(loginUrls());
     }
 

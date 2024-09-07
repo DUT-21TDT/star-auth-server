@@ -4,7 +4,7 @@ import com.pbl.starauthserver.entities.AuthUser;
 import com.pbl.starauthserver.enums.AccountStatus;
 import com.pbl.starauthserver.enums.UserRole;
 import com.pbl.starauthserver.repositories.UserRepository;
-import com.pbl.starauthserver.security.CustomOAuth2User;
+import com.pbl.starauthserver.security.OAuth2.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
