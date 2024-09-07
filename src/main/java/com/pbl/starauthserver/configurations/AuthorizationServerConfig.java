@@ -6,7 +6,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.pbl.starauthserver.properties.PublicClientProperties;
 import com.pbl.starauthserver.properties.StarClientProperties;
-import com.pbl.starauthserver.security.BrandedAuthenticationEntryPoint;
+import com.pbl.starauthserver.security.*;
 import com.pbl.starauthserver.services.CustomUserDetailsService;
 import com.pbl.starauthserver.utils.KeyUtil;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +25,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -71,7 +73,6 @@ public class AuthorizationServerConfig {
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                         )
                 );
-                // Accept access tokens for User Info and/or Client Registration
 
         return http.build();
     }
@@ -93,6 +94,7 @@ public class AuthorizationServerConfig {
                 .oauth2Login(
                         oauth2Login -> oauth2Login
                                 .loginPage("/login")
+                                .failureHandler(customOAuth2AuthenticationFailureHandler())
                                 .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
                                         .userService(customOauth2UserService)
                                 )
@@ -102,6 +104,8 @@ public class AuthorizationServerConfig {
                 .formLogin(
                         form -> form.loginPage("/login")
                                 .loginProcessingUrl("/login")
+                                .successHandler(customAuthenticationSuccessHandler()) // Use custom success handler
+                                .failureHandler(customAuthenticationFailureHandler()) // Use custom failure handler
                                 .permitAll()
                 )
 //                .oidcLogout(Customizer.withDefaults())
@@ -117,6 +121,20 @@ public class AuthorizationServerConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "assets/**", "favicon.ico");
+    }
+
+    @Bean
+    public CustomAuthenticationFailureHandler customAuthenticationFailureHandler() {
+        return new CustomAuthenticationFailureHandler();
+    }
+
+    @Bean
+    CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler() {
+        return new CustomAuthenticationSuccessHandler();
+    }
+
+    @Bean CustomOAuth2AuthenticationFailureHandler customOAuth2AuthenticationFailureHandler() {
+        return new CustomOAuth2AuthenticationFailureHandler(loginUrls());
     }
 
     @Autowired
