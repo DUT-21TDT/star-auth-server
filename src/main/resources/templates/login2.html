@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Please Log In</title>
+    <link th:rel="stylesheet" type="text/css" href="/css/login2.css" th:href="@{/css/login2.css}">
+</head>
+<body>
+<style>
+    .divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: #bdbdbd; /* Similar to the color in JSX */
+    }
+
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #bdbdbd;
+        margin: 0 10px;
+    }
+</style>
+
+<div class="h-screen w-full relative bg-white">
+    <div
+            class="h-[45%] bg-cover bg-center"
+            th:style="'background-image: url(' + @{/images/login.webp} + ');'"
+    ></div>
+    <div class="w-[450px] h-auto border border-black/15 absolute left-1/2 top-[60%] -translate-x-1/2 -translate-y-1/2 p-5 rounded-[20px] bg-white">
+        <div class="text-center">
+            <h1 class="text-[17px] font-bold mb-5">
+                Log in with your Google account
+            </h1>
+        </div>
+        <div>
+            <form>
+                <div class="w-full flex flex-col gap-4 pt-2 pb-4">
+                    <div>
+                        <input
+                                type="text"
+                                name="username"
+                                class="w-full h-[50px] border border-black/15 rounded-[10px] p-2 text-[14px] pl-3 "
+                                placeholder="Username"
+                        />
+                    </div>
+                    <div>
+                        <input
+                                type="password"
+                                name="password"
+                                class="w-full h-[50px] border border-black/15 rounded-[10px] p-2 text-[14px] pl-3"
+                                placeholder="Password"
+                        />
+                    </div>
+                    <div>
+                        <button
+                                type="submit"
+                                class="w-full h-[50px] bg-black text-[white] border border-black/15 rounded-[10px] p-2 text-[16px]"
+                        >
+                            Log in
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div>
+            <p class="text-center">
+                Don't have an account?
+                <a href="/signup" class="text-[#1890ff]">
+                    Sign-up
+                </a>
+            </p>
+        </div>
+        <div class="divider my-4"><b>or</b></div>
+        <a th:href="@{/oauth2/authorization/google}">
+            <div class="border border-black/15 p-[20px_25px] rounded-[15px] flex items-center justify-between gap-2 cursor-pointer">
+                <div class="w-[35px] h-[35px]">
+                    <img
+                            th:src="@{/images/devicon_google.png}"
+                            alt="Google"
+                            class="w-full h-full object-cover object-center"
+                    />
+                </div>
+                <div class="text-[16px] font-bold">Continue with Google</div>
+                <div>
+                    <svg
+                            width="28"
+                            height="28"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                                d="M10 17L15 12L10 7"
+                                stroke="grey"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                        />
+                    </svg>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+</body>
+</html>
