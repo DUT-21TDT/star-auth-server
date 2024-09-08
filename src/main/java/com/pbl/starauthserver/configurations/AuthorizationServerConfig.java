@@ -10,6 +10,7 @@ import com.pbl.starauthserver.security.*;
 import com.pbl.starauthserver.security.Authentication.CustomAuthenticationFailureHandler;
 import com.pbl.starauthserver.security.Authentication.CustomAuthenticationSuccessHandler;
 import com.pbl.starauthserver.security.OAuth2.CustomOAuth2AuthenticationFailureHandler;
+import com.pbl.starauthserver.security.Oidc.CustomLogoutSuccessHandler;
 import com.pbl.starauthserver.services.CustomUserDetailsService;
 import com.pbl.starauthserver.utils.KeyUtil;
 import lombok.RequiredArgsConstructor;
@@ -108,10 +109,10 @@ public class AuthorizationServerConfig {
                                 .failureHandler(customAuthenticationFailureHandler()) // Use custom failure handler
                                 .permitAll()
                 )
-//                .oidcLogout(Customizer.withDefaults())
                 .logout(logout -> logout
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
+                        .logoutSuccessHandler(customLogoutSuccessHandler())
                         .permitAll()
                 );
         return http.build();
@@ -136,6 +137,11 @@ public class AuthorizationServerConfig {
     @Bean
     CustomOAuth2AuthenticationFailureHandler customOAuth2AuthenticationFailureHandler() {
         return new CustomOAuth2AuthenticationFailureHandler(loginUrls());
+    }
+
+    @Bean
+    CustomLogoutSuccessHandler customLogoutSuccessHandler() {
+        return new CustomLogoutSuccessHandler();
     }
 
     @Autowired
