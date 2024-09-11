@@ -161,6 +161,7 @@ public class AuthorizationServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri(publicClientProperties.getRedirectUri())
                 .scope(OidcScopes.OPENID)
+                .tokenSettings(tokenSettings())
                 .build();
 
         RegisteredClient starClient = RegisteredClient.withId(UUID.randomUUID().toString())
@@ -245,7 +246,7 @@ public class AuthorizationServerConfig {
     public TokenSettings tokenSettings() {
         return TokenSettings.builder()
                 .accessTokenTimeToLive(Duration.ofMinutes(15))
-                .refreshTokenTimeToLive(Duration.ofDays(1))
+                .refreshTokenTimeToLive(Duration.ofDays(7))
                 .reuseRefreshTokens(false)
                 .build();
     }
