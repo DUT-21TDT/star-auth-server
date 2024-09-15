@@ -23,11 +23,12 @@ public class JwtConfig {
                 Authentication principal = context.getPrincipal();
 
                 if (principal != null && principal.getPrincipal() instanceof CustomOAuth2User oAuth2User) {
-                    context.getClaims().subject(oAuth2User.getUsername());
+                    context.getClaims().subject(oAuth2User.getUserId());
                     context.getClaims().claim("roles", List.of(oAuth2User.getRole().name()));
                 }
 
                 else if (principal != null && principal.getPrincipal() instanceof CustomUserDetails customUserDetails) {
+                    context.getClaims().subject(customUserDetails.getUserId());
                     context.getClaims().claim("roles", List.of(customUserDetails.getRole().name()));
                 }
 

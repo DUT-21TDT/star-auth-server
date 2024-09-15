@@ -16,6 +16,8 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class CustomUserDetails implements UserDetails {
+    @Getter
+    private String userId;
     private String username;
     private String password;
     private UserRole role;

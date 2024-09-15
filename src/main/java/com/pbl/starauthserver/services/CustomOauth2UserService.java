@@ -42,7 +42,7 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
                 username = generateUniqueName(name);
             }
 
-            user = AuthUser.builder()
+            AuthUser newUser = AuthUser.builder()
                     .username(username)
                     .email(email)
                     .role(UserRole.USER)
@@ -52,12 +52,12 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
 
             userRepository.deleteAll(userRepository.findByEmailAndStatus(email, AccountStatus.INACTIVE));
 
-            userRepository.save(user);
+            user = userRepository.save(newUser);
         } else {
             user = users.getFirst();
         }
 
-        return new CustomOAuth2User(oAuth2User, user.getUsername(), user.getRole());
+        return new CustomOAuth2User(oAuth2User, user.getId(), user.getRole());
     }
 
 }

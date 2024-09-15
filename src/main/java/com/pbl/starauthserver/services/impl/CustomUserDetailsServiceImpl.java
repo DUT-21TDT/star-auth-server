@@ -21,6 +21,7 @@ public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
         );
 
         return CustomUserDetails.builder()
+                .userId(user.getId())
                 .username(user.getUsername())
                 .password(user.getPassword())
                 .role(user.getRole())
