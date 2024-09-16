@@ -48,6 +48,7 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
                     .role(UserRole.USER)
                     .registerAt(Instant.now())
                     .status(AccountStatus.ACTIVE)
+                    .privateProfile(false)
                     .build();
 
             userRepository.deleteAll(userRepository.findByEmailAndStatus(email, AccountStatus.INACTIVE));

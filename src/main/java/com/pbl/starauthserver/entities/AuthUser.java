@@ -42,4 +42,7 @@ public class AuthUser {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    @Column(name = "private_profile")
+    private boolean privateProfile;
 }
