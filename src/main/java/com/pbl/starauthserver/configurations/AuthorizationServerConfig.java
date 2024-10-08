@@ -31,15 +31,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
@@ -147,48 +143,9 @@ public class AuthorizationServerConfig {
     @Autowired
     private StarClientProperties starClientProperties;
 
-    @Autowired
-    private PublicClientProperties publicClientProperties;
-
     @Bean
     public RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
-
-        RegisteredClient publicClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId(publicClientProperties.getClientId())
-                .clientSecret("{noop}" + publicClientProperties.getClientSecret())
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri(publicClientProperties.getRedirectUri())
-                .scope(OidcScopes.OPENID)
-                .tokenSettings(tokenSettings())
-                .build();
-
-        RegisteredClient starClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId(starClientProperties.getClientId())
-                .clientSecret("{noop}" + starClientProperties.getClientSecret())
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri(starClientProperties.getRedirectUri())
-                .postLogoutRedirectUri(starClientProperties.getLogoutUri())
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .tokenSettings(tokenSettings())
-                .build();
-
-        RegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcTemplate);
-
-        if (repository.findByClientId(publicClient.getClientId()) == null) {
-            repository.save(publicClient);
-        }
-
-        if (repository.findByClientId(starClient.getClientId()) == null) {
-            repository.save(starClient);
-        }
-
-        return repository;
-//        return new InMemoryRegisteredClientRepository(publicClient, starClient);
+        return new JdbcRegisteredClientRepository(jdbcTemplate);
     }
 
     @Bean
